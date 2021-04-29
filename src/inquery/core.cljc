@@ -2,18 +2,9 @@
   #?(:clj (:require [clojure.java.io :as io]
                     [clojure.string :as s]
                     [inquery.pred :as pred])
-     :cljs (:require [cljs.nodejs :as node]
-                     [clojure.string :as s]
+     :cljs (:require [clojure.string :as s]
                      [inquery.pred :as pred])))
 
-#?(:cljs
-    (defn read-query [path qname]
-      (let [fname (str path "/" qname ".sql")]
-        (try
-          (.toString
-            (.readFileSync (node/require "fs") fname))
-          (catch :default e
-            (throw (js/Error. (str "can't find query file to load: \"" fname "\": " e))))))))
 
 #?(:clj
     (defn read-query [path qname]
@@ -23,16 +14,17 @@
           (slurp sql)
           (throw (RuntimeException. (str "can't find query file to load: \"" fname "\"")))))))
 
-(defn make-query-map
-  ([names]
-   (make-query-map names {:path "sql"}))
-  ([names {:keys [path]}]
-   (into {}
-         (for [qname names]
-           (->> qname
-                name
-                (read-query path)
-                (vector qname))))))
+#?(:clj 
+				(defn make-query-map
+				  ([names]
+				   (make-query-map names {:path "sql"}))
+				  ([names {:keys [path]}]
+				   (into {}
+				         (for [qname names]
+				           (->> qname
+				                name
+				                (read-query path)
+				                (vector qname)))))))
 
 (defn treat-as? [k v]
   (if (map? v)
